@@ -41,74 +41,44 @@ void setPixel(int x, int y, float red, float green, float blue, std::vector<uint
     framebuffer[bufferIdx+2]=clamp(blue*255,0,255);
 }
 
-void drawLine(Point a, Point b, std::vector<uint8_t> & framebuffer){
-    int y_diff = b.y-a.y;
-    int x_diff = b.x-a.x;
-    int y_dir = 1;
-    int x_dir = 1;
+//bresenham's algorithm
+void drawLine(Point a, Point b, std::vector<uint8_t>& framebuffer) {
+    int x0 = a.x;
+    int y0 = a.y;
+    int x1 = b.x;
+    int y1 = b.y;
 
-    if(y_diff<0){
-        y_diff=-y_diff;
-        y_dir=-1;
-    }
+    int dx = std::abs(x1 - x0);
+    int dy = std::abs(y1 - y0);
 
-    if(x_diff<0){
-        x_diff=-x_diff;
-        x_dir=-1;
-    }
+    int sx = (x0 < x1) ? 1 : -1;
+    int sy = (y0 < y1) ? 1 : -1;
 
-    int curPixel_x = a.x;
-    int curPixel_y = a.y;
-    bool alt = false;
+    int err = dx - dy;
 
-    while(x_diff!=0&&y_diff!=0){
-        if(x_diff==y_diff){
-            curPixel_x = curPixel_x+x_dir;
-            curPixel_y = curPixel_y+y_dir;
-            x_diff--; y_diff--;
-        } else if(x_diff>y_diff) {
-            if(alt){
-                curPixel_x = curPixel_x+x_dir;
-                x_diff--;
-            } else {
-                curPixel_x = curPixel_x+x_dir;
-                curPixel_y = curPixel_y+y_dir;
-                x_diff--; y_diff--;
-            }
-            alt = !alt;
-        } else {
-            if(alt){
-                curPixel_y = curPixel_y+y_dir;
-                y_diff--;
-            } else {
-                curPixel_x = curPixel_x+x_dir;
-                curPixel_y = curPixel_y+y_dir;
-                x_diff--; y_diff--;
-            }
-            alt = !alt;
+    while (true) {
+        setPixel(x0, y0, 1, 0, 0, framebuffer);
+
+        if (x0 == x1 && y0 == y1)
+            break;
+
+        int e2 = 2 * err;
+
+        if (e2 > -dy) {
+            err -= dy;
+            x0 += sx;
         }
 
-        //color the pixel
-        setPixel(curPixel_x,curPixel_y,1,0,0,framebuffer);
+        if (e2 < dx) {
+            err += dx;
+            y0 += sy;
+        }
     }
 
-    while(x_diff>y_diff){
-        curPixel_x = curPixel_x+x_dir;
-        x_diff--;
-        setPixel(curPixel_x,curPixel_y,1,0,0,framebuffer);
-    }
-
-    while(y_diff>x_diff){
-        curPixel_y = curPixel_y+y_dir;
-        y_diff--;
-        setPixel(curPixel_x,curPixel_y,1,0,0,framebuffer);
-    }
-
-    //set a,b to a diff color for visualization
-    setPixel(a.x,a.y,0,1,0,framebuffer);
-    setPixel(b.x,b.y,0,1,0,framebuffer);
-
+    setPixel(a.x, a.y, 0, 1, 0, framebuffer);
+    setPixel(b.x, b.y, 0, 1, 0, framebuffer);
 }
+
 
 
 int main() {
